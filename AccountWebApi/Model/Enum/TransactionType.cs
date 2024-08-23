@@ -8,5 +8,7 @@ namespace AccountWebApi.Model.Enum
         WITHDRAW,
         [Display(Name = "Deposit")]
         DEPOSIT,
+        [Display(Name = "Transfer")]
+        TRANSFER,
     }
 }

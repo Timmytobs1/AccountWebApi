@@ -9,5 +9,6 @@ namespace AccountWebApi.Interface
         public TransactionDto GetTransactionById(Guid id);
         public TransactionDto Withdraw(WithdrawalDto withdrawDto);
         public TransactionDto Deposit(DepositDto depositDto);
+        public TransactionDto Transfer(TransferDto transferDto);
     }
 }

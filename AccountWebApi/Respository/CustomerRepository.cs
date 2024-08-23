@@ -27,7 +27,9 @@ namespace AccountWebApi.Respository
 
         public List<CustomerDto> GetAllCustomer()
         {
-            throw new NotImplementedException();
+            var customers = _context.Customers.Select(b => b.ToCustomerDto()).ToList();
+
+            return customers;
         }
 
         public CustomerDto? GetCustomer(Guid id)

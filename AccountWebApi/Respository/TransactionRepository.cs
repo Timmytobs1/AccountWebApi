@@ -95,6 +95,89 @@ namespace AccountWebApi.Repository
             throw new NotImplementedException();
         }
 
+      
+
+        public TransactionDto Transfer(TransferDto transferDto)
+        {
+            // Retrieve the source and destination accounts
+            var sourceAccount = _context.Accounts.FirstOrDefault(x => x.AccountNo == transferDto.SourceAccountNo);
+            var destinationAccount = _context.Accounts.FirstOrDefault(x => x.AccountNo == transferDto.DestinationAccountNo);
+
+            if (sourceAccount == null || destinationAccount == null)
+            {
+                throw new Exception("One or both accounts do not exist.");
+            }
+
+            if (transferDto.Amount <= 0)
+            {
+                throw new Exception("Invalid transfer amount.");
+            }
+
+            if (sourceAccount.AccountBalance < transferDto.Amount)
+            {
+                throw new Exception("Insufficient funds in source account.");
+            }
+
+            var sourceCustomer = _context.Customers.FirstOrDefault(c => c.id == sourceAccount.CustomerId);
+            var destinationCustomer = _context.Customers.FirstOrDefault(c => c.id == destinationAccount.CustomerId);
+
+            // Check customer tiers and account balance limits
+            if (sourceCustomer.Tier == 1)
+            {
+                if (sourceAccount.AccountBalance - transferDto.Amount < 0)
+                {
+                    throw new Exception("Tier Balance Exceeded.");
+                }
+            }
+            else if (sourceCustomer.Tier == 2)
+            {
+                // Assuming no specific checks for tier 2
+            }
+            else if (sourceCustomer.Tier == 3)
+            {
+                // Assuming no specific checks for tier 3
+            }
+
+            // Update the balances
+            sourceAccount.AccountBalance -= transferDto.Amount;
+            destinationAccount.AccountBalance += transferDto.Amount;
+
+            // Create transactions for both accounts
+            var sourceTransaction = new Model.Transaction
+            {
+                AccountNo = sourceAccount.AccountNo,
+                AccountId = sourceAccount.Id,
+                Amount = -transferDto.Amount,
+                CustomerId = sourceAccount.CustomerId,
+                TransactionType = TransactionType.TRANSFER
+            };
+
+            var destinationTransaction = new Model.Transaction
+            {
+                AccountNo = destinationAccount.AccountNo,
+                AccountId = destinationAccount.Id,
+                Amount = transferDto.Amount,
+                CustomerId = destinationAccount.CustomerId,
+                TransactionType = TransactionType.TRANSFER
+            };
+
+            // Add transactions to the context
+            _context.Transactions.Add(sourceTransaction);
+            _context.Transactions.Add(destinationTransaction);
+
+            _context.SaveChanges();
+
+            // Return the transfer details as a DTO
+            return new TransactionDto
+            {
+                id = sourceTransaction.id,
+                AccountId = sourceAccount.Id,
+                Amount = transferDto.Amount,
+                CustomerId = sourceAccount.CustomerId,
+                TransactionType = "Transfer",
+            };
+        }
+
         public TransactionDto Withdraw(WithdrawalDto withdrawDto)
         {
 
@@ -136,7 +219,6 @@ namespace AccountWebApi.Repository
                 CustomerId = account.CustomerId,
                 TransactionType = "Withdraw",
             };
-
             return transactionDto;
         }
     }
