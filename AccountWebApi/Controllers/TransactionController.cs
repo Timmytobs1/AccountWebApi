@@ -19,25 +19,26 @@ namespace AccountWebApi.Controllers
 
         [HttpPost]
         [Route("Deposit")]
-        public IActionResult Deposit([FromBody] DepositDto depositDto)
+        public async Task <IActionResult> Deposit([FromBody] DepositDto depositDto)
         {
             try
             {
                 var flutterwave = new FlutterwaveService();
-            
                 var transaction = _repository.Deposit(depositDto);
-                if (transaction == null)
+                var response = await flutterwave.MakePayment(depositDto.Amount, "test@test.com");
+                var responseBody = JsonDocument.Parse(response);
+                JsonElement root = responseBody.RootElement;
+                string status = root.GetProperty("status").GetString();
+               
+                if (transaction == null || status != "success")
                 {
-                    return BadRequest(new { Status = "Failed", Message = "Something Went Wrong" });
-                }
-                var response = flutterwave.MakePayment(depositDto.Amount, "test@test.com");
-
-              
-                return Ok(new { Status = "Success", Data = response });
+                    return BadRequest(new { Status = "Failed", Message = "Something Went Wrong", TransactionStatus = "Failed" });
+                }           
+                return Ok(new { Status = "Success", TransactionStatus = transaction.TransactionStatus, Data = transaction });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Status = "Failed", Message = ex.Message });
+                return BadRequest(new { Status = "Failed", Message = ex.Message, TransactionStatus = "Failed" });
             }
         }
         /*  [HttpPost]
@@ -67,6 +68,7 @@ namespace AccountWebApi.Controllers
             try
             {
                 var flutterwave = new FlutterwaveService();
+                var transaction = _repository.Transfer(transferDto);
                 var response = await flutterwave.MakeTransfer(transferDto.Amount, transferDto.SourceAccountNo, transferDto.DestinationAccountNo, "test@test.com");
                 var responseBody = JsonDocument.Parse(response);
                 JsonElement root = responseBody.RootElement;
@@ -74,21 +76,17 @@ namespace AccountWebApi.Controllers
 
                 if (status == "success")
                 {
-                    var transaction = _repository.Transfer(transferDto);
-                    if (transaction == null)
+                    if (transaction == null || status != "success")
                     {
-                        return BadRequest(new { Status = "Failed", Message = "Something Went Wrong" });
+                        return BadRequest(new { Status = "Failed", Message = "Something Went Wrong", TransactionStatus = "Failed" });
                     }
-                    return Ok(new { Status = "Success", Data = transaction });
-
-
+                    return Ok(new { Status = "Success", TransactionStatus = transaction.TransactionStatus, Data = transaction });
                 }
                 else
                 {
-                    return BadRequest(new { Status = "Failed", Message = "Something Went Wrong" });
+                    return BadRequest(new { Status = "Failed", Message = "Something Went Wrong", TransactionStatus = "Failed" });
 
                 }
-
             }
             catch (Exception ex)
             {
@@ -98,20 +96,26 @@ namespace AccountWebApi.Controllers
 
 
         [HttpPost("withdraw")]
-        public IActionResult Withdraw([FromBody] WithdrawalDto withdrawDto)
+        public async Task <IActionResult> Withdraw([FromBody] WithdrawalDto withdrawDto)
         {
             try
             {
+                var flutterwave = new FlutterwaveService();
                 var transaction = _repository.Withdraw(withdrawDto);
-                if (transaction == null)
+                var response = await flutterwave.MakePayment(withdrawDto.Amount, "test@test.com");
+                var responseBody = JsonDocument.Parse(response);
+                JsonElement root = responseBody.RootElement;
+                string status = root.GetProperty("status").GetString();
+             
+                if (transaction == null || status != "success")
                 {
-                    return BadRequest(new { Status = "Failed", Message = "Account does not exist" });
+                    return BadRequest(new { Status = "Failed", Message = "Account does not exist", TransactionStatus = "Failed" });
                 }
-                return Ok(new { Status = "Success", Message = "Transaction Successfully", Data = transaction });
+                return Ok(new { Status = "Success", Message = "Transaction Successfully", TransactionStatus = transaction.TransactionStatus, Data = transaction });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Status = "Failed", Message = ex.Message });
+                return BadRequest(new { Status = "Failed", Message = ex.Message, TransactionStatus = "Failed" });
             }
         }
 

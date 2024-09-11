@@ -3,6 +3,7 @@ using System;
 using AccountWebApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AccountWebApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240911091847_lastMigration")]
+    partial class lastMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -122,9 +125,8 @@ namespace AccountWebApi.Migrations
                     b.Property<Guid>("CustomerId")
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("TransactionStatus")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("TransactionStatus")
+                        .HasColumnType("int");
 
                     b.Property<int>("TransactionType")
                         .HasColumnType("int");

@@ -9,6 +9,7 @@ namespace AccountWebApi.Model
         public Guid id { get; set; } 
         public decimal Amount { get; set; }
         public TransactionType TransactionType { get; set; }
+        public string TransactionStatus { get; set; }
         public Guid CustomerId { get; set; }
         [ForeignKey("CustomerId")]
         public Customer? Customer { get; set; }

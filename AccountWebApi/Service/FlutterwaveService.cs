@@ -25,7 +25,7 @@ namespace AccountWebApi.Service
                 amount = amount,
                 email = email,
                 currency = "NGN",
-                tx_ref = "PaymentRef"
+                tx_ref = GenerateRef()
             };
 
             var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
@@ -43,7 +43,7 @@ namespace AccountWebApi.Service
                 DestinationAccountNo = DestinationAccountNo,
                 amount = amount,
                 email = email,
-                tx_ref = "TransferRef",
+                tx_ref = GenerateRef(),
           //      narration = narration,  // Description of the transaction
                 currency = "NGN",
                 reference = Guid.NewGuid().ToString(),  // Unique reference for the transaction
@@ -55,6 +55,19 @@ namespace AccountWebApi.Service
 
             var responseContent = await response.Content.ReadAsStringAsync();
             return responseContent;
+        }
+
+        private string GenerateRef()
+        {
+            Random random = new Random();
+            string digits = "YDADii61617";
+            string accountNo = "";
+            int length = 10;
+            for (int i = 0; i < length; i++)
+            {
+                accountNo += digits[random.Next(digits.Length)];
+            }
+            return accountNo;
         }
 
     }
